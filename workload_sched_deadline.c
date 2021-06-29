@@ -173,6 +173,7 @@ int main(int argc, char *argv[]) {
                 }
         }
         //insertion attente pour l'allocation potentielle
+        f
         pid_t appbis;
         appbis = getpid();
         printf("pid depart = %d \n",appbis);
