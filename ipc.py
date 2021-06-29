@@ -29,6 +29,9 @@ BPF_PERF_OUTPUT(output);
 // Per Cpu Data to store start values
 BPF_PERCPU_ARRAY(data, u64);
 
+BPF_PERCPU_ARRAY(counts, u64, 12);
+
+
 #define CLOCK_ID 0
 #define INSTRUCTION_ID 1
 #define TIME_ID 2
@@ -51,7 +54,7 @@ void trace_start(struct pt_regs *ctx) {
     u64 clk_start = clk.perf_read(cpu);
     u64 inst_start = inst.perf_read(cpu);
     u64 time_start = bpf_ktime_get_ns();
-    
+
     u64* kptr = NULL;
     kptr = data.lookup(&clk_k);
     if (kptr) {
@@ -93,7 +96,7 @@ void trace_end(struct pt_regs* ctx) {
     u64 clk_end = clk.perf_read(cpu);
     u64 inst_end = inst.perf_read(cpu);
     u64 time_end = bpf_ktime_get_ns();
-    
+
     struct perf_delta perf_data = {} ;
     u64* kptr = NULL;
     kptr = data.lookup(&clk_k);
@@ -104,7 +107,7 @@ void trace_end(struct pt_regs* ctx) {
     } else {
         return;
     }
-    
+
     kptr = data.lookup(&inst_k);
     if (kptr) {
         perf_data.inst_delta = inst_end - *kptr;
@@ -150,7 +153,7 @@ b.attach_uretprobe(name=options.lib_name, sym=options.sym, fn_name="trace_end")
 
 def print_data(cpu, data, size):
     e = b["output"].event(data)
-    print("%-8d %-12d %-8.2f %-8s %d" % (e.clk_delta, e.inst_delta, 
+    print("%-8d %-12d %-8.2f %-8s %d" % (e.clk_delta, e.inst_delta,
         1.0* e.inst_delta/e.clk_delta, str(round(e.time_delta * 1e-3, 2)) + ' us', cpu))
 
 print("Counters Data")
@@ -160,7 +163,7 @@ b["output"].open_perf_buffer(print_data)
 
 # Perf Event for Unhalted Cycles, The hex value is
 # combination of event, umask and cmask. Read Intel
-# Doc to find the event and cmask. Or use 
+# Doc to find the event and cmask. Or use
 # perf list --details to get event, umask and cmask
 # NOTE: Events can be multiplexed by kernel in case the
 # number of counters is greater than supported by CPU

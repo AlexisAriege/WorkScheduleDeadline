@@ -56,6 +56,8 @@ TRACEPOINT_PROBE(syscalls, sys_exit_sched_yield)
     stamp.ringbuf_output(&s, sizeof(s), BPF_RB_FORCE_WAKEUP);
     return 0;
 }
+
+
 """
 
 # load BPF program

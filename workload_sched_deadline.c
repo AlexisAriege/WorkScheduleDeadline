@@ -104,7 +104,7 @@ void *function_thread(void *arg) {
         attr.sched_priority = 0;
         /* This creates a 10ms/30ms reservation */
         attr.sched_policy = SCHED_DEADLINE;
-        attr.sched_runtime = 2 *1000* 1000;//runtime
+        attr.sched_runtime = 1 *1000* 1000;//runtime
         attr.sched_period = attr.sched_deadline =100* 1000* 1000;// period
         ret = sched_setattr(0, &attr, flags);
         if (ret < 0) {
@@ -120,7 +120,12 @@ void *function_thread(void *arg) {
                         actual=*(actual.next);
                         i++;
                 }
-                printf("fin \n");
+                //modif
+              /*  pid_t app;
+                app = getpid();
+                printf("pid = %d \n",app);*/
+
+                //printf("fin \n");
                 sched_yield();
         }
         for (int i=0;i<7;i++) {
@@ -167,6 +172,12 @@ int main(int argc, char *argv[]) {
                         exit(EXIT_FAILURE);
                 }
         }
+        //insertion attente pour l'allocation potentielle
+        pid_t appbis;
+        appbis = getpid();
+        printf("pid depart = %d \n",appbis);
+        sleep(1);
+
         pthread_t *thread_data;
         thread_data = malloc(number_thread*sizeof( pthread_t ));
         srand(time(NULL));
