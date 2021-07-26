@@ -64,7 +64,7 @@ b = BPF(text=code)
 try:
     b.attach_perf_event(
         ev_type=PerfType.HARDWARE, ev_config=PerfHWConfig.INSTRUCTIONS,
-        fn_name="counter_ipc",sample_period=10000000) #, sample_freq=1
+        fn_name="counter_ipc",sample_period=50000000) #, sample_freq=1
 
 
 
@@ -77,16 +77,19 @@ b["cpu_cycles"].open_perf_event(PERF_TYPE_RAW, 0x0000003C)
 b["cpu_instructions"].open_perf_event(PERF_TYPE_RAW, 0x000000C0)
 #b["cpu_cycles"].open_perf_event(b["cpu_cycles"].HW_CPU_CYCLES)
 start = 0
+file_result_ipc = open("file_result_ipc.txt", "w")
 def print_event(cpu, data, size):
     event = b["events"].event(data)
     global start
     if start == 0:
             start = event.ts
     time_s = (float(event.ts - start)) / 1000000000
-    print("t=%6.5f ,cpu=%d, valeur cycle=%d, instruction=%d" % (time_s,event.id_cpu ,event.cycle, event.instruction))
+    file_result_ipc.write("t=%6.5f ;%d;%d;%d \n" % (time_s,event.id_cpu ,event.cycle, event.instruction))
+    #print("t=%6.5f ,cpu=%d, valeur cycle=%d, instruction=%d" % (time_s,event.id_cpu ,event.cycle, event.instruction))
 b["events"].open_perf_buffer(print_event)
 while True:
 	try:
     	    b.perf_buffer_poll()
 	except KeyboardInterrupt:
+            file_result_ipc.close()
             exit()
